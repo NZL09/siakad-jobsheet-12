@@ -1,30 +1,42 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DosenController;
 use App\Http\Controllers\KrsController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\MataKuliahController;
+use App\Http\Controllers\PenggunaController;
 use Illuminate\Support\Facades\Route;
 
-// Halaman awal diarahkan ke dashboard
-Route::get('/', fn () => redirect()->route('dashboard'));
+// Halaman untuk tamu: hanya bisa dibuka bila BELUM login
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'authenticate'])->name('login.attempt');
+});
 
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->name('dashboard');
+// Halaman internal: hanya bisa dibuka bila SUDAH login
+Route::middleware('auth')->group(function () {
+    // Halaman awal diarahkan ke dashboard (dari Jobsheet 08)
+    Route::get('/', fn () => redirect()->route('dashboard'));
 
-Route::get('/mahasiswa', [MahasiswaController::class, 'index'])
-    ->name('mahasiswa.index');
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::get('/dosen', [DosenController::class, 'index'])
-    ->name('dosen.index');
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
+	Route::get('/pengguna', [PenggunaController::class, 'index'])
+		->middleware('role:admin')
+		->name('pengguna.index');
+    Route::get('/mahasiswa', [MahasiswaController::class, 'index'])
+        ->name('mahasiswa.index');
+    Route::get('/dosen', [DosenController::class, 'index'])
+        ->name('dosen.index');
+    Route::get('/mata-kuliah', [MataKuliahController::class, 'index'])
+        ->name('matakuliah.index');
+    Route::get('/krs', [KrsController::class, 'index'])
+        ->name('krs.index');
 
-Route::get('/mata-kuliah', [MataKuliahController::class, 'index'])
-    ->name('matakuliah.index');
-
-Route::get('/krs', [KrsController::class, 'index'])
-    ->name('krs.index');
-
-// Dari Jobsheet 07, tetap dipertahankan
-Route::get('/beranda', [BerandaController::class, 'index'])->name('beranda');
+    // Dari Jobsheet 07; menampilkan versi PHP/MySQL dan nama database, jadi dilindungi
+    Route::get('/beranda', [BerandaController::class, 'index'])->name('beranda');
+});
