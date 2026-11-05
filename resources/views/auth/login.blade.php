@@ -22,9 +22,20 @@
                     autocomplete="username" required autofocus />
             </div>
             
+            <!-- Bagian Password diubah menjadi HTML manual agar tombol mata bisa masuk -->
             <div class="mb-3">
-                <x-form-input label="Kata Sandi" name="password" type="password" 
-                    autocomplete="current-password" required />
+                <label for="password" class="form-label">Kata Sandi</label>
+                <div class="position-relative">
+                    <input type="password" class="form-control @error('password') is-invalid @enderror" 
+                        name="password" id="password" autocomplete="current-password" required>
+                    
+                    <button type="button" id="togglePassword" class="btn btn-sm btn-link position-absolute end-0 top-50 translate-middle-y text-decoration-none text-muted pe-3" style="border: none; background: transparent;">
+                        <i class="bi bi-eye-fill" id="iconPassword"></i>
+                    </button>
+                </div>
+                @error('password')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
             </div>
             
             <div class="form-check mb-3">
@@ -37,4 +48,20 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    document.getElementById('togglePassword').addEventListener('click', function () {
+        const passInput = document.getElementById('password');
+        const icon = document.getElementById('iconPassword');
+        if (passInput.type === 'password') {
+            passInput.type = 'text';
+            icon.classList.replace('bi-eye-fill', 'bi-eye-slash-fill');
+        } else {
+            passInput.type = 'password';
+            icon.classList.replace('bi-eye-slash-fill', 'bi-eye-fill');
+        }
+    });
+</script>
+@endpush
 @endsection

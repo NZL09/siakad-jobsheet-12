@@ -7,6 +7,10 @@
 
     <link href="{{ asset('vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('vendor/bootstrap-icons/bootstrap-icons.min.css') }}" rel="stylesheet">
+    
+    <!-- SweetAlert2 CSS -->
+    <link href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet">
+
     <link href="{{ asset('css/siakad.css') }}" rel="stylesheet">
     @stack('styles')
 </head>
@@ -30,6 +34,10 @@
     </div>
 
     <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    
+    <!-- SweetAlert2 JS -->
+    <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
+
     @stack('scripts')
 </body>
 </html>

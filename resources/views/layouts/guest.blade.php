@@ -7,6 +7,10 @@
     
     <link href="{{ asset('vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('vendor/bootstrap-icons/bootstrap-icons.min.css') }}" rel="stylesheet">
+    
+    <!-- Tambahkan CSS SweetAlert2 -->
+    <link href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet">
+
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
 </head>
 <body class="bg-body-tertiary">
@@ -15,6 +19,14 @@
             @yield('content')
         </div>
     </main>
+
     <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    
+    <!-- Tambahkan JS SweetAlert2 -->
+    <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
+    @stack('scripts')
+</body>
+</html>
 </body>
 </html>

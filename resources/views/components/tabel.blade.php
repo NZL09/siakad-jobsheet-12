@@ -5,8 +5,10 @@
         <thead class="table-light">
             <tr>
                 <th scope="col" style="width: 50px">#</th>
-                @foreach ($kolom as $judul)
-                    <th scope="col">{{ $judul }}</th>
+                @foreach ($kolom as $key => $kol)
+                    <th scope="col">
+                        {{ is_array($kol) ? $kol['nama'] : $kol }}
+                    </th>
                 @endforeach
             </tr>
         </thead>
@@ -14,11 +16,15 @@
             @forelse ($baris as $item)
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    @foreach ($kolom as $kunci => $judul)
+                    @foreach ($kolom as $key => $kol)
+                        @php
+                            $kunci = is_array($kol) ? $kol['cetak'] : (is_string($key) ? $key : $kol);
+                        @endphp
                         <td>
-                            @if ($kunci === 'status')
+                            @if (isset($kunci) && $kunci === 'status')
                                 @php
-                                    $warna = match ($item[$kunci]) {
+                                    $val = is_array($item) ? ($item[$kunci] ?? '') : ($item->$kunci ?? '');
+                                    $warna = match ($val) {
                                         'Aktif', 'Disetujui' => 'success',
                                         'Menunggu', 'Cuti' => 'warning',
                                         'Ditolak' => 'danger',
@@ -26,14 +32,15 @@
                                     };
                                 @endphp
                                 <span class="badge text-bg-{{ $warna }}">
-                                    {{ $item[$kunci] }}
+                                    {{ $val }}
                                 </span>
-                            @elseif ($kunci === 'nim' && Route::has('mahasiswa.show'))
-                                <a href="{{ route('mahasiswa.show', $item[$kunci]) }}" class="text-decoration-none fw-semibold">
-                                    {{ $item[$kunci] }}
+                            @elseif (isset($kunci) && $kunci === 'nim' && Route::has('mahasiswa.show'))
+                                @php $val = is_array($item) ? ($item[$kunci] ?? '') : ($item->$kunci ?? ''); @endphp
+                                <a href="{{ route('mahasiswa.show', $val) }}" class="text-decoration-none fw-semibold">
+                                    {{ $val }}
                                 </a>
                             @else
-                                {{ $item[$kunci] }}
+                                {{ is_array($item) ? ($item[$kunci] ?? '') : ($item->$kunci ?? '') }}
                             @endif
                         </td>
                     @endforeach

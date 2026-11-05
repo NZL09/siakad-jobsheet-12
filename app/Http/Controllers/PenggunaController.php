@@ -4,19 +4,27 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\View\View;
+use Carbon\Carbon;
 
 class PenggunaController extends Controller
 {
     public function index(): View
     {
         $kolom = [
-            'name' => 'Nama', 'email' => 'Email', 'role' => 'Peran',
+            ['nama' => 'No', 'cetak' => 'no'],
+            ['nama' => 'Nama', 'cetak' => 'name'],
+            ['nama' => 'Email', 'cetak' => 'email'],
+            ['nama' => 'Peran', 'cetak' => 'role'],
+            ['nama' => 'Login Terakhir', 'cetak' => 'last_login_at'],
         ];
 
-        // password tidak ikut diambil dari database
-        $pengguna = User::orderBy('name')
-            ->get(['name', 'email', 'role'])
-            ->toArray();
+        // Ambil data pengguna dan format last_login_at menjadi string
+        $pengguna = User::all()->map(function ($user) {
+            $user->last_login_at = $user->last_login_at 
+                ? Carbon::parse($user->last_login_at)->format('d-m-Y H:i:s') 
+                : 'Belum pernah';
+            return $user;
+        });
 
         return view('pengguna.index', compact('kolom', 'pengguna'));
     }

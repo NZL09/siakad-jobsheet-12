@@ -38,6 +38,9 @@ class LoginController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             RateLimiter::clear($key);
             $request->session()->regenerate();
+			Auth::user()->update([
+				'last_login_at' => now(),
+			]);
             $pesan = 'Login berhasil. Selamat datang, ' . Auth::user()->name . '.';
             return redirect()->intended(route('dashboard'))->with('success', $pesan);
         }
