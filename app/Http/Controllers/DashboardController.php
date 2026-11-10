@@ -2,52 +2,80 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\View\View;
+use App\Models\Mahasiswa;
+use App\Models\Dosen;
+use App\Models\MataKuliah;
+use App\Models\Krs;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function index()
     {
-        // Data sementara. Akan diganti query Eloquent pada jobsheet lanjutan.
+        // 1. Data Statistik (Kartu Atas)
+        $totalMahasiswa = Mahasiswa::count();
+        $totalDosen = Dosen::count();
+        $totalMataKuliah = MataKuliah::count();
+        $totalKrs = Krs::count();
+
+        // Hitung Rata-rata SKS
+        $totalSksDiambil = DB::table('krs_detail')
+            ->join('mata_kuliah', 'krs_detail.mata_kuliah_id', '=', 'mata_kuliah.id')
+            ->sum('mata_kuliah.sks');
+        $rataSks = $totalKrs > 0 ? round($totalSksDiambil / $totalKrs) : 0;
+
         $statistik = [
-            ['judul' => 'Mahasiswa', 'jumlah' => 1250,
-             'ikon' => 'bi-mortarboard-fill', 'warna' => 'primary'],
-            ['judul' => 'Dosen', 'jumlah' => 68,
-             'ikon' => 'bi-person-badge-fill', 'warna' => 'success'],
-            ['judul' => 'Mata Kuliah', 'jumlah' => 94,
-             'ikon' => 'bi-book-fill', 'warna' => 'warning'],
-            ['judul' => 'KRS Aktif', 'jumlah' => 842,
-             'ikon' => 'bi-journal-check', 'warna' => 'info'],
-			['judul' => 'Rata-rata SKS', 'jumlah' => 21,
-			'ikon' => 'bi-calculator-fill', 'warna' => 'secondary'],
+            ['judul' => 'Mahasiswa', 'jumlah' => number_format($totalMahasiswa, 0, ',', '.'), 'ikon' => 'bi-mortarboard-fill', 'warna' => 'primary'],
+            ['judul' => 'Dosen', 'jumlah' => $totalDosen, 'ikon' => 'bi-person-badge', 'warna' => 'success'],
+            ['judul' => 'Mata Kuliah', 'jumlah' => $totalMataKuliah, 'ikon' => 'bi-book', 'warna' => 'warning'],
+            ['judul' => 'KRS Aktif', 'jumlah' => $totalKrs, 'ikon' => 'bi-ui-checks', 'warna' => 'info'],
+            ['judul' => 'Rata-rata SKS', 'jumlah' => $rataSks, 'ikon' => 'bi-calculator', 'warna' => 'secondary'],
+        ];
+
+        // 2. Data KRS Terbaru (5 Data Terakhir dari DB)
+        $krsList = Krs::with(['mahasiswa', 'matakuliah'])
+            ->latest() 
+            ->take(5)  
+            ->get();
+
+        $krsTerbaru = $krsList->map(function ($krs) {
+            $statusLabel = match($krs->status) {
+                'disetujui' => 'Disetujui',
+                'diajukan' => 'Menunggu',
+                'ditolak' => 'Ditolak',
+                default => 'Draft',
+            };
+
+            return [
+                'nim' => $krs->mahasiswa->nim ?? '-',
+                'nama' => $krs->mahasiswa->nama ?? '-',
+                'sks' => $krs->matakuliah->sum('sks'),
+                'status' => $statusLabel,
+            ];
+        })->toArray(); 
+
+        // 3. Status KRS (Progress Bars)
+        $jmlDisetujui = Krs::where('status', 'disetujui')->count();
+        $jmlMenunggu = Krs::where('status', 'diajukan')->count();
+        $jmlDitolak = Krs::where('status', 'ditolak')->count();
+
+        $persenDisetujui = $totalKrs > 0 ? round(($jmlDisetujui / $totalKrs) * 100) : 0;
+        $persenMenunggu = $totalKrs > 0 ? round(($jmlMenunggu / $totalKrs) * 100) : 0;
+        $persenDitolak = $totalKrs > 0 ? round(($jmlDitolak / $totalKrs) * 100) : 0;
+
+        $statuskrs = [
+            ['label' => 'Disetujui', 'persen' => $persenDisetujui, 'warna' => 'success'],
+            ['label' => 'Menunggu', 'persen' => $persenMenunggu, 'warna' => 'warning'],
+            ['label' => 'Ditolak', 'persen' => $persenDitolak, 'warna' => 'danger'],
         ];
 
         $kolomkrs = [
-            'nim' => 'NIM', 'nama' => 'Nama Mahasiswa',
-            'sks' => 'SKS', 'status' => 'Status',
+            'nim' => 'NIM', 
+            'nama' => 'Nama Mahasiswa', 
+            'sks' => 'SKS', 
+            'status' => 'Status'
         ];
 
-        $krsTerbaru = [
-            ['nim' => '2401001', 'nama' => 'Ahmad Fauzi',
-             'sks' => 22, 'status' => 'Disetujui'],
-            ['nim' => '2401002', 'nama' => 'Siti Rahmawati',
-             'sks' => 20, 'status' => 'Disetujui'],
-            ['nim' => '2301005', 'nama' => 'Budi Santoso',
-             'sks' => 24, 'status' => 'Menunggu'],
-            ['nim' => '2301012', 'nama' => 'Dewi Lestari',
-             'sks' => 18, 'status' => 'Menunggu'],
-            ['nim' => '2201026', 'nama' => 'Rizky Pratama',
-             'sks' => 21, 'status' => 'Disetujui'],
-        ];
-
-        $statuskrs = [
-            ['label' => 'Disetujui', 'persen' => 70, 'warna' => 'success'],
-            ['label' => 'Menunggu', 'persen' => 22, 'warna' => 'warning'],
-            ['label' => 'Ditolak', 'persen' => 8, 'warna' => 'danger'],
-        ];
-
-        return view('dashboard', compact(
-            'statistik', 'kolomkrs', 'krsTerbaru', 'statuskrs'
-        ));
+        return view('dashboard', compact('statistik', 'kolomkrs', 'krsTerbaru', 'statuskrs'));
     }
 }

@@ -29,12 +29,6 @@ Route::middleware(['auth', 'no-back'])->group(function () { // <-- 2. Tambahkan 
     Route::get('/pengguna', [PenggunaController::class, 'index'])
         ->middleware('role:admin')
         ->name('pengguna.index');
-    Route::get('/mahasiswa', [MahasiswaController::class, 'index'])
-        ->name('mahasiswa.index');
-    Route::get('/mata-kuliah', [MataKuliahController::class, 'index'])
-        ->name('matakuliah.index');
-    Route::get('/krs', [KrsController::class, 'index'])
-        ->name('krs.index');
 
     // Dari Jobsheet 07; menampilkan versi PHP/MySQL dan nama database, jadi dilindungi
     Route::get('/beranda', [BerandaController::class, 'index'])->name('beranda');
@@ -48,5 +42,29 @@ Route::middleware(['auth', 'no-back'])->group(function () { // <-- 2. Tambahkan 
     });
 
     Route::resource('dosen', DosenController::class)
+        ->only(['index', 'show']);
+
+    Route::get('/mahasiswa/data', [MahasiswaController::class, 'data'])->name('mahasiswa.data');
+    Route::middleware('role:admin')->group(function () {
+        Route::resource('mahasiswa', MahasiswaController::class)->except(['index', 'show']);
+    });
+    Route::resource('mahasiswa', MahasiswaController::class)->only(['index', 'show']);
+
+    Route::get('/matakuliah/data', [MataKuliahController::class, 'data'])->name('matakuliah.data');
+    Route::middleware('role:admin')->group(function () {
+        Route::resource('matakuliah', MataKuliahController::class)->except(['index', 'show']);
+    });
+    Route::resource('matakuliah', MataKuliahController::class)->only(['index', 'show']);
+    
+    Route::get('/krs/data', [KrsController::class, 'data'])->name('krs.data');
+
+    Route::middleware('role:admin')->group(function () {
+        Route::resource('krs', KrsController::class)
+            ->parameters(['krs' => 'krs'])
+            ->except(['index', 'show']);
+    });
+
+    Route::resource('krs', KrsController::class)
+        ->parameters(['krs' => 'krs'])
         ->only(['index', 'show']);
 });
